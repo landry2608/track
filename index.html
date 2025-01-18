@@ -2,36 +2,99 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="apple-mobile-web-app-title" content="Planning Personnel">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Planning Personnel</title>
     
-    <!-- Liens vers les icônes pour iOS -->
-    <link rel="apple-touch-icon" href="icon-512.png">
-    <link rel="manifest" href="manifest.json">
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
     <!-- React -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     
-    <!-- Babel pour JSX -->
-    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <!-- Babel -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <div id="root"></div>
-    
-    <!-- Votre code d'application -->
-    <script type="text/babel" src="app.js"></script>
 
-    <!-- Script d'initialisation -->
     <script type="text/babel">
+        // Tout votre code React ira ici
+        const { useState, useEffect } = React;
+
+        // Composant principal
+        function App() {
+            const [tasks, setTasks] = useState([]);
+            const [newTask, setNewTask] = useState('');
+
+            useEffect(() => {
+                const saved = localStorage.getItem('tasks');
+                if (saved) {
+                    setTasks(JSON.parse(saved));
+                }
+            }, []);
+
+            const addTask = () => {
+                if (newTask.trim()) {
+                    const updatedTasks = [...tasks, { text: newTask, completed: false }];
+                    setTasks(updatedTasks);
+                    localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+                    setNewTask('');
+                }
+            };
+
+            const toggleTask = (index) => {
+                const updatedTasks = tasks.map((task, i) => 
+                    i === index ? { ...task, completed: !task.completed } : task
+                );
+                setTasks(updatedTasks);
+                localStorage.setItem('tasks', JSON.stringify(updatedTasks));
+            };
+
+            return (
+                <div className="max-w-md mx-auto mt-10 p-6">
+                    <h1 className="text-2xl font-bold mb-6">Planning Personnel</h1>
+                    
+                    <div className="flex gap-2 mb-6">
+                        <input
+                            type="text"
+                            value={newTask}
+                            onChange={(e) => setNewTask(e.target.value)}
+                            className="flex-1 px-4 py-2 border rounded"
+                            placeholder="Nouvelle tâche..."
+                        />
+                        <button 
+                            onClick={addTask}
+                            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+                        >
+                            Ajouter
+                        </button>
+                    </div>
+
+                    <div className="space-y-2">
+                        {tasks.map((task, index) => (
+                            <div 
+                                key={index} 
+                                className="flex items-center gap-2 p-3 border rounded"
+                            >
+                                <input
+                                    type="checkbox"
+                                    checked={task.completed}
+                                    onChange={() => toggleTask(index)}
+                                />
+                                <span className={task.completed ? 'line-through' : ''}>
+                                    {task.text}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        // Rendu de l'application
         const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<MobileTracker />);
+        root.render(<App />);
     </script>
 </body>
 </html>
