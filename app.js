@@ -374,3 +374,5 @@ const MobileTracker = () => {
             <path d="M12 5v14M5 12h14"/>
           </svg>
           Ajouter une cat
+       const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(<MobileTracker />);
