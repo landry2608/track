@@ -8,16 +8,30 @@
     <meta name="apple-mobile-web-app-title" content="Planning Personnel">
     <title>Planning Personnel</title>
     
+    <!-- Liens vers les icônes pour iOS -->
     <link rel="apple-touch-icon" href="icon-512.png">
     <link rel="manifest" href="manifest.json">
     
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/umd/lucide.min.js"></script>
+    
+    <!-- React -->
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel pour JSX -->
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 </head>
 <body>
     <div id="root"></div>
-    <script src="app.js"></script>
+    
+    <!-- Votre code d'application -->
+    <script type="text/babel" src="app.js"></script>
+
+    <!-- Script d'initialisation -->
+    <script type="text/babel">
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<MobileTracker />);
+    </script>
 </body>
 </html>
