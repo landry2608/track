@@ -1,4 +1,7 @@
-// Créer les composants de base nécessaires puisqu'ils ne sont pas disponibles dans ce contexte
+// app.js
+const { useState, useEffect } = React;
+
+// Composants de base
 const Card = ({ children, className }) => (
   <div className={`bg-white rounded-lg shadow ${className}`}>{children}</div>
 );
@@ -70,75 +73,31 @@ const Switch = ({ checked, onCheckedChange }) => (
 );
 
 const MobileTracker = () => {
-  // Structure de base pour une nouvelle catégorie
   const createEmptyCategory = () => ({
     objectif: '',
     realisation: '',
     status: ''
   });
 
-  // Fonction pour calculer les statistiques d'une catégorie
-  const calculateCategoryStats = (category) => {
-    const stats = {
-      achieved: 0,
-      notAchieved: 0,
-      successRate: 0,
-      creationDate: '',
-      deletionDate: null
-    };
-
-    // Parcourir toutes les entrées du localStorage pour cette catégorie
-    Object.keys(localStorage)
-      .filter(key => key.startsWith('tracker_'))
-      .sort()
-      .forEach(key => {
-        try {
-          const dayData = JSON.parse(localStorage.getItem(key));
-          if (dayData[category]) {
-            if (!stats.creationDate) {
-              stats.creationDate = key.replace('tracker_', '');
-            }
-            if (dayData[category].status === 'Atteint') {
-              stats.achieved++;
-            } else if (dayData[category].status === 'Non atteint') {
-              stats.notAchieved++;
-            }
-          }
-        } catch (error) {
-          console.error('Erreur lors de la lecture des données:', error);
-        }
-      });
-
-    const total = stats.achieved + stats.notAchieved;
-    stats.successRate = total > 0 ? Math.round((stats.achieved / total) * 100) : 0;
-
-    return stats;
-  };
-
-  const [categories, setCategories] = React.useState([
+  const [categories, setCategories] = useState([
     'famille',
     'sante',
     'entrepreneuriat'
   ]);
+  const [activeTab, setActiveTab] = useState('today');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [currentData, setCurrentData] = useState({});
+  const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+  const [editingCategory, setEditingCategory] = useState(null);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [isAddingCategory, setIsAddingCategory] = useState(false);
 
-  const [activeTab, setActiveTab] = React.useState('today');
-  const [selectedDate, setSelectedDate] = React.useState(new Date().toISOString().split('T')[0]);
-  const [currentData, setCurrentData] = React.useState({});
-  const [notificationsEnabled, setNotificationsEnabled] = React.useState(false);
-  
-  // États pour la gestion des catégories
-  const [editingCategory, setEditingCategory] = React.useState(null);
-  const [newCategoryName, setNewCategoryName] = React.useState('');
-  const [isAddingCategory, setIsAddingCategory] = React.useState(false);
-
-  React.useEffect(() => {
-    // Chargement des catégories
+  useEffect(() => {
     const savedCategories = localStorage.getItem('categories');
     if (savedCategories) {
       setCategories(JSON.parse(savedCategories));
     }
 
-    // Chargement des données du jour
     const savedData = localStorage.getItem(`tracker_${selectedDate}`);
     if (savedData) {
       setCurrentData(JSON.parse(savedData));
@@ -190,20 +149,17 @@ const MobileTracker = () => {
 
   const handleEditCategory = () => {
     if (newCategoryName.trim() && editingCategory && newCategoryName.trim().toLowerCase() !== editingCategory) {
-      // Mise à jour de la liste des catégories
       const updatedCategories = categories.map(cat => 
         cat === editingCategory ? newCategoryName.trim().toLowerCase() : cat
       );
       setCategories(updatedCategories);
       localStorage.setItem('categories', JSON.stringify(updatedCategories));
 
-      // Mise à jour des données actuelles
       const updatedData = { ...currentData };
       updatedData[newCategoryName.trim().toLowerCase()] = updatedData[editingCategory];
       delete updatedData[editingCategory];
       setCurrentData(updatedData);
 
-      // Mise à jour des données historiques
       Object.keys(localStorage)
         .filter(key => key.startsWith('tracker_'))
         .forEach(key => {
@@ -220,12 +176,47 @@ const MobileTracker = () => {
     }
   };
 
+  const calculateCategoryStats = (category) => {
+    const stats = {
+      achieved: 0,
+      notAchieved: 0,
+      successRate: 0,
+      creationDate: '',
+      deletionDate: null
+    };
+
+    Object.keys(localStorage)
+      .filter(key => key.startsWith('tracker_'))
+      .sort()
+      .forEach(key => {
+        try {
+          const dayData = JSON.parse(localStorage.getItem(key));
+          if (dayData[category]) {
+            if (!stats.creationDate) {
+              stats.creationDate = key.replace('tracker_', '');
+            }
+            if (dayData[category].status === 'Atteint') {
+              stats.achieved++;
+            } else if (dayData[category].status === 'Non atteint') {
+              stats.notAchieved++;
+            }
+          }
+        } catch (error) {
+          console.error('Erreur lors de la lecture des données:', error);
+        }
+      });
+
+    const total = stats.achieved + stats.notAchieved;
+    stats.successRate = total > 0 ? Math.round((stats.achieved / total) * 100) : 0;
+
+    return stats;
+  };
+
   const handleDeleteCategory = (categoryToDelete) => {
     const updatedCategories = categories.filter(cat => cat !== categoryToDelete);
     setCategories(updatedCategories);
     localStorage.setItem('categories', JSON.stringify(updatedCategories));
 
-    // Suppression des données de la catégorie
     const updatedData = { ...currentData };
     delete updatedData[categoryToDelete];
     setCurrentData(updatedData);
@@ -282,7 +273,9 @@ const MobileTracker = () => {
                     onClick={() => startEditingCategory(category)}
                     className="h-8 w-8"
                   >
-                    <Edit2 className="h-4 w-4 text-gray-500" />
+                    <svg className="h-4 w-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3Z"/>
+                    </svg>
                   </Button>
                   <Button
                     variant="ghost"
@@ -290,7 +283,9 @@ const MobileTracker = () => {
                     onClick={() => handleDeleteCategory(category)}
                     className="h-8 w-8"
                   >
-                    <Trash2 className="h-4 w-4 text-red-500" />
+                    <svg className="h-4 w-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M3 6h18M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
                   </Button>
                 </div>
               </div>
@@ -323,7 +318,10 @@ const MobileTracker = () => {
                   onClick={() => handleTaskChange(category, 'status', 'Atteint')}
                   className="flex items-center gap-2"
                 >
-                  <CheckCircle className="w-4 h-4" />
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                    <path d="M22 4 12 14.01l-3-3"/>
+                  </svg>
                   Atteint
                 </Button>
                 <Button
@@ -331,7 +329,10 @@ const MobileTracker = () => {
                   onClick={() => handleTaskChange(category, 'status', 'Non atteint')}
                   className="flex items-center gap-2"
                 >
-                  <XCircle className="w-4 h-4" />
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="m15 9-6 6M9 9l6 6"/>
+                  </svg>
                   Non atteint
                 </Button>
               </div>
@@ -369,30 +370,7 @@ const MobileTracker = () => {
           className="w-full mb-4"
           variant="outline"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          Ajouter une catégorie
-        </Button>
-      )}
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg font-semibold">Réflexion</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Textarea
-            value={currentData.reflexion || ''}
-            onChange={(e) => handleTaskChange('reflexion', '', e.target.value)}
-            placeholder="Ce que je retiens de ma journée..."
-            className="min-h-24"
-          />
-        </CardContent>
-      </Card>
-
-      <Button onClick={saveData} className="w-full">
-        <Save className="w-4 h-4 mr-2" />
-        Sauvegarder
-      </Button>
-    </div>
-  );
-
-  const renderStatsView = () => (
+          <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 5v14M5 12h14"/>
+          </svg>
+          Ajouter une cat
